@@ -23,7 +23,7 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db("gardening_tools").collection("tools");
-        const bookingCollection = client.db("gardening_tools").collection("booking");
+        const bookingCollection = client.db("gardening_tools").collection("bookings");
 
         // API to load all data
         app.get('/tools', async (req, res) => {
@@ -41,6 +41,13 @@ async function run() {
             const result = await toolsCollection.findOne(query);
             res.send(result);
 
+        })
+
+        // API for insert a booking
+        app.post('/booking', async (req, res) => {
+            const booking = req.body
+            const result = await bookingCollection.insertOne(booking)
+            res.send(result);
         })
 
 
