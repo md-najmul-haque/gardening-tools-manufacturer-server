@@ -11,6 +11,8 @@ app.use(express.json())
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const query = require('express/lib/middleware/query');
+const { ObjectId } = require('bson');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uwupg.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -21,7 +23,9 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db("gardening_tools").collection("tools");
+        const bookingCollection = client.db("gardening_tools").collection("booking");
 
+        // API to load all data
         app.get('/tools', async (req, res) => {
             const query = {};
             const cursor = toolsCollection.find(query);
@@ -29,6 +33,17 @@ async function run() {
             res.send(result);
 
         })
+
+        //API for find single tool
+        app.get('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.findOne(query);
+            res.send(result);
+
+        })
+
+
     }
     finally {
 
