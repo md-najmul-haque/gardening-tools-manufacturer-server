@@ -23,6 +23,7 @@ async function run() {
         const toolsCollection = client.db("gardening_tools").collection("tools");
         const bookingCollection = client.db("gardening_tools").collection("bookings");
         const reviewCollection = client.db("gardening_tools").collection("reviews");
+        const userCollection = client.db("gardening_tools").collection("users");
 
         // API to load all data
         app.get('/tools', async (req, res) => {
@@ -66,13 +67,23 @@ async function run() {
 
         // API for add a review
         app.post('/reviews', async (req, res) => {
-            const booking = req.body
-            const result = await reviewCollection.insertOne(booking)
+            const review = req.body
+            const result = await reviewCollection.insertOne(review)
             res.send(result);
         })
 
-
-
+        // API to update profile
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const user = req.body
+            const filter = { email: email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await userCollection.insertOne(filter, updateDoc, options)
+            res.send(result);
+        })
 
     }
     finally {
