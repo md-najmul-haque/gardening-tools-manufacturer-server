@@ -22,6 +22,7 @@ async function run() {
         await client.connect();
         const toolsCollection = client.db("gardening_tools").collection("tools");
         const bookingCollection = client.db("gardening_tools").collection("bookings");
+        const reviewCollection = client.db("gardening_tools").collection("reviews");
 
         // API to load all data
         app.get('/tools', async (req, res) => {
@@ -48,12 +49,22 @@ async function run() {
             res.send(bookings);
         })
 
+        // To load all reviews
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
         // API for insert a booking
         app.post('/booking', async (req, res) => {
             const booking = req.body
             const result = await bookingCollection.insertOne(booking)
             res.send(result);
         })
+
+
 
 
     }
