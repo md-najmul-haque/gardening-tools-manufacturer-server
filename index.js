@@ -12,7 +12,7 @@ app.use(express.json())
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const query = require('express/lib/middleware/query');
-const { ObjectId } = require('bson');
+const { ObjectId } = require('bson')
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uwupg.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -61,6 +61,13 @@ async function run() {
         app.post('/booking', async (req, res) => {
             const booking = req.body
             const result = await bookingCollection.insertOne(booking)
+            res.send(result);
+        })
+
+        // API for add a review
+        app.post('/reviews', async (req, res) => {
+            const booking = req.body
+            const result = await reviewCollection.insertOne(booking)
             res.send(result);
         })
 
