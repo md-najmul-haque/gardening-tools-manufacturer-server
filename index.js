@@ -17,8 +17,6 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-
-
 async function run() {
     try {
         await client.connect();
@@ -41,6 +39,13 @@ async function run() {
             const result = await toolsCollection.findOne(query);
             res.send(result);
 
+        })
+        // API to load all booking against each user
+        app.get('/booking', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
         })
 
         // API for insert a booking
