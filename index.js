@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
 const app = express();
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 5000;
 
@@ -16,6 +17,20 @@ const { ObjectId } = require('bson')
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uwupg.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorized Access' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden Access' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 async function run() {
     try {
@@ -43,11 +58,17 @@ async function run() {
 
         })
         // API to load all booking against each user
-        app.get('/booking', async (req, res) => {
+        app.get('/booking', verifyJWT, async (req, res) => {
             const email = req.query.email;
-            const query = { email: email }
-            const bookings = await bookingCollection.find(query).toArray();
-            res.send(bookings);
+            const decodedEmail = req.decoded.email;
+            if (decodedEmail === email) {
+                const query = { email: email }
+                const bookings = await bookingCollection.find(query).toArray();
+                res.send(bookings);
+            } else {
+                return res.status(403).send({ message: 'Forbidden Access' })
+            }
+
         })
 
 
@@ -66,6 +87,22 @@ async function run() {
             res.send(result);
         })
 
+        // To load all users
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const cursor = userCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        // API to load specific user
+        app.get('/user', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email };
+            const result = await userCollection.findOne(query)
+            res.send(result);
+        })
+
         // API for insert a booking
         app.post('/booking', async (req, res) => {
             const booking = req.body
@@ -80,7 +117,7 @@ async function run() {
             res.send(result);
         })
 
-        // API to update profile
+        // API to update or insert user profile
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email
             const userProfile = req.body
@@ -90,7 +127,8 @@ async function run() {
                 $set: userProfile,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options)
-            res.send(result);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET)
+            res.send({ result, token });
         })
 
     }
