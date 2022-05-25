@@ -50,6 +50,14 @@ async function run() {
             res.send(bookings);
         })
 
+
+        // API to load all booking against all user
+        app.get('/booking', async (req, res) => {
+            const query = {}
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
         // To load all reviews
         app.get('/reviews', async (req, res) => {
             const query = {};
@@ -75,13 +83,13 @@ async function run() {
         // API to update profile
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email
-            const user = req.body
+            const userProfile = req.body
             const filter = { email: email }
             const options = { upsert: true };
             const updateDoc = {
-                $set: user
+                $set: userProfile,
             };
-            const result = await userCollection.insertOne(filter, updateDoc, options)
+            const result = await userCollection.updateOne(filter, updateDoc, options)
             res.send(result);
         })
 
