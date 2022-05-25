@@ -103,6 +103,14 @@ async function run() {
             res.send(result);
         })
 
+        // API for checking admin or not
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin'
+            res.send({ admin: isAdmin })
+        })
+
         // API for insert a booking
         app.post('/booking', async (req, res) => {
             const booking = req.body
@@ -131,9 +139,12 @@ async function run() {
             res.send({ result, token });
         })
 
+
         // API to make admin
         app.put('/users/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
+
+
             const filter = { email: email };
             const updateDoc = {
                 $set: { role: 'admin' },
