@@ -118,6 +118,13 @@ async function run() {
             res.send(result);
         })
 
+        // API for insert a product
+        app.post('/tools', async (req, res) => {
+            const tool = req.body
+            const result = await toolsCollection.insertOne(tool)
+            res.send(result);
+        })
+
         // API for add a review
         app.post('/reviews', async (req, res) => {
             const review = req.body
@@ -153,7 +160,14 @@ async function run() {
             res.send(result);
         })
 
+        // API for delete a order 
+        app.delete('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCollection.deleteOne(query);
+            res.send(result);
 
+        })
 
     }
     finally {
