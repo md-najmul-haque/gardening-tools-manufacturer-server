@@ -59,6 +59,14 @@ async function run() {
             res.send(result);
 
         })
+
+        // API for insert a product
+        app.post('/tools', async (req, res) => {
+            const tool = req.body
+            const result = await toolsCollection.insertOne(tool)
+            res.send(result);
+        })
+
         // API to load all booking against each user
         app.get('/booking', verifyJWT, async (req, res) => {
             const email = req.query.email;
@@ -73,6 +81,13 @@ async function run() {
 
         })
 
+        // API to load all booking against all user
+        app.get('/booking', async (req, res) => {
+            const query = {}
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
         //to get specific booking against each id
         app.get('/booking/:id', async (req, res) => {
             const id = req.params.id;
@@ -81,12 +96,11 @@ async function run() {
             res.send(result);
         })
 
-
-        // API to load all booking against all user
-        app.get('/booking', async (req, res) => {
-            const query = {}
-            const bookings = await bookingCollection.find(query).toArray();
-            res.send(bookings);
+        // API for insert a booking
+        app.post('/booking', async (req, res) => {
+            const booking = req.body
+            const result = await bookingCollection.insertOne(booking)
+            res.send(result);
         })
 
         //after payment update booking
@@ -100,18 +114,18 @@ async function run() {
                     transactionId: payment.transactionId
                 }
             }
-
             const result = await paymentCollection.insertOne(payment);
             const updatedBooking = await bookingCollection.updateOne(filter, updatedDoc);
             res.send(updatedBooking);
         })
 
-        // To load all reviews
-        app.get('/reviews', async (req, res) => {
-            const query = {};
-            const cursor = reviewCollection.find(query);
-            const result = await cursor.toArray();
+        // API for delete a order 
+        app.delete('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCollection.deleteOne(query);
             res.send(result);
+
         })
 
         // To load all users
@@ -130,35 +144,6 @@ async function run() {
             res.send(result);
         })
 
-        // API for checking admin or not
-        app.get('/admin/:email', async (req, res) => {
-            const email = req.params.email
-            const user = await userCollection.findOne({ email: email });
-            const isAdmin = user.role === 'admin'
-            res.send({ admin: isAdmin })
-        })
-
-        // API for insert a booking
-        app.post('/booking', async (req, res) => {
-            const booking = req.body
-            const result = await bookingCollection.insertOne(booking)
-            res.send(result);
-        })
-
-        // API for insert a product
-        app.post('/tools', async (req, res) => {
-            const tool = req.body
-            const result = await toolsCollection.insertOne(tool)
-            res.send(result);
-        })
-
-        // API for add a review
-        app.post('/reviews', async (req, res) => {
-            const review = req.body
-            const result = await reviewCollection.insertOne(review)
-            res.send(result);
-        })
-
         // API to update or insert user profile
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email
@@ -173,7 +158,6 @@ async function run() {
             res.send({ result, token });
         })
 
-
         // API to make admin
         app.put('/users/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
@@ -187,13 +171,29 @@ async function run() {
             res.send(result);
         })
 
-        // API for delete a order 
-        app.delete('/booking/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const result = await bookingCollection.deleteOne(query);
-            res.send(result);
+        // API for checking admin or not
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin'
+            res.send({ admin: isAdmin })
+        })
 
+
+        // To load all reviews
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+
+        // API for add a review
+        app.post('/reviews', async (req, res) => {
+            const review = req.body
+            const result = await reviewCollection.insertOne(review)
+            res.send(result);
         })
 
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
@@ -207,7 +207,6 @@ async function run() {
             });
             res.send({ clientSecret: paymentIntent.client_secret })
         });
-
 
     }
     finally {
