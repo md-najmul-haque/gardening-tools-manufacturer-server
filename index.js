@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config()
 const app = express();
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -39,6 +40,7 @@ async function run() {
         const bookingCollection = client.db("gardening_tools").collection("bookings");
         const reviewCollection = client.db("gardening_tools").collection("reviews");
         const userCollection = client.db("gardening_tools").collection("users");
+        const paymentCollection = client.db('doctors-portal').collection('payments');
 
         // API to load all data
         app.get('/tools', async (req, res) => {
@@ -71,12 +73,37 @@ async function run() {
 
         })
 
+        //to get specific booking against each id
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCollection.findOne(query);
+            res.send(result);
+        })
+
 
         // API to load all booking against all user
         app.get('/booking', async (req, res) => {
             const query = {}
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
+        })
+
+        //after payment update booking
+        app.patch('/booking/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+
+            const result = await paymentCollection.insertOne(payment);
+            const updatedBooking = await bookingCollection.updateOne(filter, updatedDoc);
+            res.send(updatedBooking);
         })
 
         // To load all reviews
@@ -168,6 +195,19 @@ async function run() {
             res.send(result);
 
         })
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
+
 
     }
     finally {
