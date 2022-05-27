@@ -67,6 +67,15 @@ async function run() {
             res.send(result);
         })
 
+        // API for delete a product 
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
+            res.send(result);
+
+        })
+
         // API to load all booking against each user
         app.get('/booking', verifyJWT, async (req, res) => {
             const email = req.query.email;
