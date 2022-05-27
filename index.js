@@ -67,7 +67,7 @@ async function run() {
             res.send(result);
         })
 
-        // API for delete a product 
+        // API for delete a product in manage product section
         app.delete('/tools/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -75,6 +75,7 @@ async function run() {
             res.send(result);
 
         })
+
 
         // API to load all booking against each user
         app.get('/booking', verifyJWT, async (req, res) => {
