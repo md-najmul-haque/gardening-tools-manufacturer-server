@@ -77,7 +77,6 @@ async function run() {
 
         })
 
-
         // API to load all booking against each user
         app.get('/booking', verifyJWT, async (req, res) => {
             const email = req.query.email;
@@ -89,11 +88,10 @@ async function run() {
             } else {
                 return res.status(403).send({ message: 'Forbidden Access' })
             }
-
         })
 
         // API to load all booking against all user
-        app.get('/booking', async (req, res) => {
+        app.get('/order', verifyJWT, async (req, res) => {
             const query = {}
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
@@ -114,6 +112,7 @@ async function run() {
             res.send(result);
         })
 
+
         //after payment update booking
         app.patch('/booking/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
@@ -126,6 +125,20 @@ async function run() {
                 }
             }
             const result = await paymentCollection.insertOne(payment);
+            const updatedBooking = await bookingCollection.updateOne(filter, updatedDoc);
+            res.send(updatedBooking);
+        })
+
+
+        //after shipment update booking
+        app.patch('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    shipped: true,
+                }
+            }
             const updatedBooking = await bookingCollection.updateOne(filter, updatedDoc);
             res.send(updatedBooking);
         })
