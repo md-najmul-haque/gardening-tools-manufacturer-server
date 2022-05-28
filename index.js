@@ -40,7 +40,8 @@ async function run() {
         const bookingCollection = client.db("gardening_tools").collection("bookings");
         const reviewCollection = client.db("gardening_tools").collection("reviews");
         const userCollection = client.db("gardening_tools").collection("users");
-        const paymentCollection = client.db('doctors-portal').collection('payments');
+        const paymentCollection = client.db('gardening_tools').collection('payments');
+        const messagesCollection = client.db('gardening_tools').collection('messages');
 
         // API to load all data
         app.get('/tools', async (req, res) => {
@@ -217,6 +218,13 @@ async function run() {
             });
             res.send({ clientSecret: paymentIntent.client_secret })
         });
+
+        // API for insert a email from contact to data base
+        app.post('/contact', async (req, res) => {
+            const contact = req.body
+            const result = await messagesCollection.insertOne(contact)
+            res.send(result);
+        })
 
     }
     finally {
